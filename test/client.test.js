@@ -11,15 +11,11 @@ util.log = function() {};
 
 // net mockage
 var net = require('net');
-
-net.createConnection = function() {
-  return connectionObserver;
-};
-
 var StompFrame = require('../lib/frame').StompFrame;
 
 // Override StompFrame send function to allow inspection of frame data inside a test
 var oldSend;
+var oldCreateConnection;
 var sendHook = function() {};
 
 module.exports = testCase({
@@ -28,6 +24,11 @@ module.exports = testCase({
     // Mock net object so we never try to send any real data
     connectionObserver = new Events();
     this.stompClient = new StompClient('127.0.0.1', 2098, 'user', 'pass', '1.0');
+
+    oldCreateConnection = net.createConnection;
+    net.createConnection = function() {
+      return connectionObserver;
+    };
 
     oldSend = StompFrame.prototype.send;
     StompFrame.prototype.send = function(stream) {
@@ -43,6 +44,7 @@ module.exports = testCase({
   tearDown: function(callback) {
     delete this.stompClient;
     sendHook = function() {};
+    net.createConnection = oldCreateConnection;
     StompFrame.prototype.send = oldSend;
     callback();
   },
