@@ -32,3 +32,6 @@ The following enhancements have been added:
 	});
 
 The client comes in two forms, a standard or secure client. The example below is using the standard client. To use the secure client simply change **StompClient** to **SecureStompClient**.
+
+##LICENSE
+[MIT](LICENSE)
