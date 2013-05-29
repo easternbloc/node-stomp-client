@@ -12,7 +12,7 @@
   },
   "main" : "lib/client.js",
   "engines": {
-    "node":">= 0.4 < 0.8"
+    "node":">= 0.4"
   },
   "dependencies": {},
   "devDependencies": {
