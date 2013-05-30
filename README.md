@@ -21,7 +21,7 @@ The following enhancements have been added:
 	var Client = require('stomp-client').StompClient;
 	var destination = '/queue/someQueueName';
 
-	var client = new Client('127.0.0.1', 2098, 'user', 'pass', '1.0');
+	var client = new Client('127.0.0.1', 61613, 'user', 'pass', '1.0');
 
 	client.connect(function(sessionId) {
 		client.subscribe(destination, function(body, headers) {

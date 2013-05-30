@@ -55,7 +55,7 @@ module.exports = testCase({
     test.equal(stompClient.user, '');
     test.equal(stompClient.pass, '');
     test.equal(stompClient.address, '127.0.0.1');
-    test.equal(stompClient.port, 2098);
+    test.equal(stompClient.port, 61613);
     test.equal(stompClient.version, '1.0');
 
     test.done();
