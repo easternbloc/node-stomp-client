@@ -11,7 +11,7 @@ util.log = function() {};
 module.exports = testCase({
 
   'check connect to closed port errors': function(test) {
-    var stompClient = new StompClient({port: 4});
+    var stompClient = new StompClient('127.0.0.1', 4);
 
     stompClient.connect(function() {});
 
