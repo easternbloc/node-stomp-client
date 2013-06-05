@@ -9,6 +9,16 @@ var connectionObserver;
 // surpress logs for the test
 util.log = function() {};
 
+// check message headers are properties of Error object
+function checkError(test, er, expectedHeaders, msg)
+{
+  var headers = {}
+  for (var key in expectedHeaders) {
+    headers[key] = er[key];
+  }
+  test.deepEqual(headers, expectedHeaders, msg);
+}
+
 // net mockage
 var net = require('net');
 var StompFrame = require('../lib/frame').StompFrame;
@@ -122,7 +132,7 @@ module.exports = testCase({
     this.stompClient.connect(function () {
       test.ok(false, 'Success callback of connect() should not be called');
     }, function (headers, body) {
-      test.deepEqual(headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
+      checkError(test, headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
       test.equal(body, expectedBody, 'passed ERROR frame body should be as expected');
       test.done();
     });
@@ -135,7 +145,7 @@ module.exports = testCase({
     var testId = '1234';
     var destination = '/queue/someQueue';
     
-    test.expect(3);
+    test.expect(10);
 
     //mock that we received a CONNECTED from the stomp server in our send hook
     sendHook = function(stompFrame) {
@@ -144,19 +154,63 @@ module.exports = testCase({
 
     // Once connected - subscribe to a fake queue
     this.stompClient._stompFrameEmitter.on('CONNECTED', function (stompFrame) {
+      function unsubscribe() {
+        sendHook = function (){};
+        self.stompClient.unsubscribe(destination);
+      }
+      // Synchronous hooking of the .send(), vastly simplifying the tests below
+      StompFrame.prototype.send = function(stream) {
+        var self = this;
+        sendHook(self);
+      };
+
       //override the sendHook so we can test the latest stompframe to be sent
       sendHook = function(stompFrame) {
         test.equal(stompFrame.command, 'SUBSCRIBE');
         test.equal(stompFrame.headers.destination, destination);
         test.equal(stompFrame.headers.id, 'blah');
-        test.done();
       };
 
-      self.stompClient.subscribe(destination, function(){
-        // this callback never gets called unless the client recieves some data down the subscription
-        // the point of this test is to ensure the SUBSCRIBE frame is correctly structured
-        // note the use of additional id header (optional in spec) below :)
-      }, { id: 'blah' });
+      // note the use of additional id header (optional in spec) below :)
+      self.stompClient.subscribe(destination, function(){}, { id: 'blah' });
+      unsubscribe();
+
+      sendHook = function(stompFrame) {
+        test.equal(stompFrame.command, 'SUBSCRIBE');
+        test.equal(stompFrame.headers.destination, destination);
+        test.equal(stompFrame.headers.id, 'shucks');
+      };
+
+      // Note the natural argument order is used, and destination is ignored, it
+      // gets overwritten by the real destination.
+      self.stompClient.subscribe(destination, { id: 'shucks', destination: 'D' }, function(){});
+      unsubscribe();
+
+      // Subscribe without headers is valid
+      sendHook = function(stompFrame) {
+        test.equal(stompFrame.command, 'SUBSCRIBE');
+        test.equal(stompFrame.headers.destination, destination);
+      };
+
+      self.stompClient.subscribe(destination, function(){});
+      unsubscribe();
+
+      // Subscribe without a callback is invalid, with or without headers
+      try {
+        self.stompClient.subscribe(destination, {});
+      } catch(er) {
+        test.ok(true);
+      }
+      unsubscribe();
+
+      try {
+        self.stompClient.subscribe(destination, {});
+      } catch(er) {
+        test.ok(true);
+      }
+      unsubscribe();
+
+      test.done();
     });
 
     this.stompClient.connect(function() {});
@@ -238,7 +292,7 @@ module.exports = testCase({
 
     }, function (headers, body) {
       errorCallbackCalled = true;
-      test.deepEqual(headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
+      checkError(test, headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
       test.equal(body, expectedBody, 'passed ERROR frame body should be as expected');
       test.done();
     });
@@ -251,7 +305,7 @@ module.exports = testCase({
     var testId = '1234';
     var destination = '/queue/someQueue';
     
-    test.expect(3);
+    test.expect(4);
 
     //mock that we received a CONNECTED from the stomp server in our send hook
     sendHook = function(stompFrame) {
@@ -268,7 +322,10 @@ module.exports = testCase({
         test.done();
       };
 
-      self.stompClient.unsubscribe(destination, { id: 'specialid' });
+      var before = { id: 'specialid' };
+      var after = { id: 'specialid' };
+      self.stompClient.unsubscribe(destination, after);
+      test.deepEqual(before, after, "methods shouldn't modify their arguments");
     });
 
     this.stompClient.connect(function(){});
@@ -319,7 +376,7 @@ module.exports = testCase({
 
     }, function (headers, body) {
       errorCallbackCalled = true;
-      test.deepEqual(headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
+      checkError(test, headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
       test.equal(body, expectedBody, 'passed ERROR frame body should be as expected');
       test.done();
     });
@@ -350,6 +407,40 @@ module.exports = testCase({
       };
 
       self.stompClient.publish(destination, messageToBeSent);
+
+    });
+
+    connectionObserver.emit('connect');
+  },
+
+  'check outbound SEND header correctly follows protocol specification': function (test) {
+    var self = this;
+    var testId = '1234';
+    var destination = '/queue/someQueue';
+    var messageToBeSent = 'oh herrow!';
+    var headers = {
+      destination: 'TO BE OVERWRITTEN',
+      'content-type': 'text/plain'
+    };
+
+    test.expect(3);
+
+    //mock that we received a CONNECTED from the stomp server in our send hook
+    sendHook = function (stompFrame) {
+      self.stompClient.stream.emit('data', 'CONNECTED\nsession:' + testId + '\n\n\0');
+    };
+
+    this.stompClient.connect(function() {
+
+      sendHook = function(stompFrame) {
+        test.equal(stompFrame.command, 'SEND');
+        headers.destination = destination;
+        test.deepEqual(stompFrame.headers, headers);
+        test.equal(stompFrame.body, messageToBeSent);
+        test.done();
+      };
+
+      self.stompClient.publish(destination, messageToBeSent, headers);
 
     });
 
@@ -413,6 +504,8 @@ module.exports = testCase({
     // Mock the TCP end call
     connectionObserver.end = function() {
       test.ok(true, 'TCP end call made');
+      connectionObserver.end = function(){};
+      process.nextTick(function() { connectionObserver.emit('end'); });
     };
 
     connectionObserver.emit('connect');
@@ -428,7 +521,7 @@ module.exports = testCase({
       expectedBody = 'Error message body',
       errorCallbackCalled = false;
 
-    test.expect(3);
+    test.expect(4);
 
     //mock that we received a CONNECTED from the stomp server in our send hook
     sendHook = function (stompFrame) {
@@ -442,17 +535,28 @@ module.exports = testCase({
 
       // Mock inbound ERROR frame
       sendHook = function (stompFrame) {
+        process.nextTick(function() {
         self.stompClient.stream.emit('data', 'ERROR\nmessage:' + expectedHeaders.message + '\ncontent-length:' + expectedHeaders['content-length']  + '\n\n' + expectedBody + '\0');
+        });
       };
 
       // Set disconnection callback to ensure it is called appropriately
       self.stompClient.disconnect(function () {
+        // XXX(sam) This test is wrong. There is nothing in client.js that even
+        // attempts to make the 'disconnect' event not happen after an ERROR is
+        // processed.  Also, since the TCP connection is ended AFTER the ERROR
+        // data comes in (obviously, the can be no data after end), it is also
+        // ended after the error callback, and the error callback is the one
+        // that calls test.done()... The end result of which is this
+        // test.ok(false) is actually being called, which should be a failure,
+        // but this unit test framework silently ignores failures after
+        // test.done(). Nice.
         test.ok(false, 'Success callback of disconnect() should not be called');
       });
 
     }, function (headers, body) {
       errorCallbackCalled = true;
-      test.deepEqual(headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
+      checkError(test, headers, expectedHeaders, 'passed ERROR frame headers should be as expected');
       test.equal(body, expectedBody, 'passed ERROR frame body should be as expected');
       test.done();
     });
@@ -460,6 +564,8 @@ module.exports = testCase({
     // Mock the TCP end call
     connectionObserver.end = function () {
       test.ok(true, 'TCP end call made');
+      connectionObserver.end = function(){};
+      process.nextTick(function() { connectionObserver.emit('end'); });
     };
 
     connectionObserver.emit('connect');
@@ -485,7 +591,7 @@ module.exports = testCase({
       sendHook = function (stompFrame) {};
 
       self.stompClient.disconnect(function () {
-        test.equal(self.stompClient.errorCallbacks.indexOf(errorCallback), -1, 'the error callback should not be stored in the client anymore');
+        test.equal(self.stompClient.listeners('error').indexOf(errorCallback), -1, 'the error callback should not be stored in the client anymore');
         test.done();
       }, errorCallback);
     }, errorCallback);
@@ -493,6 +599,8 @@ module.exports = testCase({
     // Mock the TCP end call
     connectionObserver.end = function () {
       test.ok(true, 'TCP end call made');
+      connectionObserver.end = function(){};
+      process.nextTick(function() { connectionObserver.emit('end'); });
     };
 
     connectionObserver.emit('connect');
