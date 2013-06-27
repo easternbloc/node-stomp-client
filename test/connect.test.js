@@ -19,4 +19,12 @@ module.exports = testCase({
       test.done();
     });
   },
+
+  'check that invalid protocol version errors': function(test) {
+    try {
+      new StompClient('127.0.0.1', null, null, null, '0.1');
+    } catch(er) {
+      test.done();
+    }
+  },
 });
