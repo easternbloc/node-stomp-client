@@ -83,6 +83,34 @@ module.exports = testCase({
     test.done();
   },
 
+  'test stream writes are correct and content-length is not set for text messages': function (test) {
+    var frame = new StompFrame({
+      'command': 'HITME',
+      'headers': {
+        'header1': 'value1',
+        'header2': 'value2'
+      },
+      'body': 'wewp de doo'
+    });
+
+    // Command before headers, content-length auto-inserted, and terminating with null char (line feed chars for each line too)
+    var expectedStream = [
+      'HITME\n',
+      'header1:value1\n',
+      'header2:value2\n',
+      '\n',
+      'wewp de doo',
+      '\u0000'
+    ];
+
+
+
+    frame.send(connectionObserver, "text");
+
+    test.deepEqual(expectedStream.join(''), connectionObserver.writeBuffer.join(''), 'frame stream data is correctly output on the mocked wire and the content-length header is not set.');
+    test.done();
+  },
+  
   'check validation of arbitrary frame with arbitrary frame construct': function (test) {
     var validation,
         frameConstruct = {
