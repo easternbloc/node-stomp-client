@@ -1,0 +1,115 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'C:\\Program Files\\nodejs\\node.exe',
+1 verbose cli   'C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js',
+1 verbose cli   'publish' ]
+2 info using npm@3.10.3
+3 info using node@v6.4.0
+4 verbose publish [ '.' ]
+5 silly cache add args [ '.', null ]
+6 verbose cache add spec .
+7 silly cache add parsed spec Result {
+7 silly cache add   raw: '.',
+7 silly cache add   scope: null,
+7 silly cache add   escapedName: null,
+7 silly cache add   name: null,
+7 silly cache add   rawSpec: '.',
+7 silly cache add   spec: 'D:\\Node\\node-stomp-client',
+7 silly cache add   type: 'directory' }
+8 verbose addLocalDirectory D:\Node\Roaming\npm;npm\npm-cache\senior-solution-stomp-client\0.8.1\package.tgz not in flight; packing
+9 verbose correctMkdir D:\Node\Roaming\npm;npm\npm-cache correctMkdir not in flight; initializing
+10 info lifecycle senior-solution-stomp-client@0.8.1~prepublish: senior-solution-stomp-client@0.8.1
+11 silly lifecycle senior-solution-stomp-client@0.8.1~prepublish: no script for prepublish, continuing
+12 verbose tar pack [ 'D:\\Node\\Roaming\\npm;npm\\npm-cache\\senior-solution-stomp-client\\0.8.1\\package.tgz',
+12 verbose tar pack   'D:\\Node\\node-stomp-client' ]
+13 verbose tarball D:\Node\Roaming\npm;npm\npm-cache\senior-solution-stomp-client\0.8.1\package.tgz
+14 verbose folder D:\Node\node-stomp-client
+15 verbose addLocalTarball adding from inside cache D:\Node\Roaming\npm;npm\npm-cache\senior-solution-stomp-client\0.8.1\package.tgz
+16 verbose correctMkdir D:\Node\Roaming\npm;npm\npm-cache correctMkdir not in flight; initializing
+17 silly cache afterAdd senior-solution-stomp-client@0.8.1
+18 verbose afterAdd D:\Node\Roaming\npm;npm\npm-cache\senior-solution-stomp-client\0.8.1\package\package.json not in flight; writing
+19 verbose correctMkdir D:\Node\Roaming\npm;npm\npm-cache correctMkdir not in flight; initializing
+20 verbose afterAdd D:\Node\Roaming\npm;npm\npm-cache\senior-solution-stomp-client\0.8.1\package\package.json written
+21 silly publish { author: { name: 'Ben Marvell' },
+21 silly publish   contributors:
+21 silly publish    [ { name: 'Ben Marvell', email: 'ben@marvell-consulting.com' },
+21 silly publish      { name: 'Ryan Grenz', email: 'info@ryangrenz.com' } ],
+21 silly publish   name: 'senior-solution-stomp-client',
+21 silly publish   description: 'A STOMP protocol implementation in node.js',
+21 silly publish   version: '0.8.1',
+21 silly publish   repository: { url: 'git+https://github.com/SeniorSolution/node-stomp-client.git' },
+21 silly publish   main: 'lib/client.js',
+21 silly publish   engines: { node: '>= 0.10' },
+21 silly publish   dependencies: {},
+21 silly publish   devDependencies: { nodeunit: '0.9.1', jshint: '2.8.0' },
+21 silly publish   license: 'MIT',
+21 silly publish   keywords: [ 'stomp', 'messaging' ],
+21 silly publish   scripts:
+21 silly publish    { test: 'nodeunit test',
+21 silly publish      lint: '[ -z "$LINTFILES" ] && LINTFILES=\'**\'; ./node_modules/jshint/bin/jshint ${LINTFILES}' },
+21 silly publish   readme: 'Stomp Client\r\n===========\r\n\r\n[![Build Status](https://img.shields.io/travis/easternbloc/node-stomp-client.svg?style=flat-square)](http://travis-ci.org/easternbloc/node-stomp-client)\r\n[![Monthly Downloads](https://img.shields.io/npm/dm/stomp-client.svg?style=flat-square)](https://www.npmjs.com/package/stomp-client)\r\n[![Version](https://img.shields.io/npm/v/stomp-client.svg?style=flat-square)](https://www.npmjs.com/package/stomp-client)\r\n[![Licence](https://img.shields.io/npm/l/stomp-client.svg?style=flat-square)](https://github.com/easternbloc/node-stomp-client/blob/master/LICENSE)\r\n\r\nA node.js [STOMP](http://stomp.github.com) client. Props goes to [Russell\r\nHaering](https://github.com/russellhaering/node-stomp-broker) for doing the\r\ninitial legwork.\r\n\r\nThe following enhancements have been added:\r\n\r\n*   Unit tests\r\n*   Ability to support different protocol versions (1.0 or 1.1) - more work needed\r\n*   Inbound frame validation (required / regex\'able header values)\r\n*   Support for UNSUBSCRIBE frames in client\r\n*   Ability to add custom headers to SUBSCRIBE/UNSUBSCRIBE frames\r\n*   ACK and NACK support\r\n\r\n## Installation\r\n\r\n\tnpm install stomp-client\r\n\r\n## Super basic example\r\n\r\n    var Stomp = require(\'stomp-client\');\r\n    var destination = \'/queue/someQueueName\';\r\n    var client = new Stomp(\'127.0.0.1\', 61613, \'user\', \'pass\');\r\n\r\n    client.connect(function(sessionId) {\r\n        client.subscribe(destination, function(body, headers) {\r\n          console.log(\'This is the body of a message on the subscribed queue:\', body);\r\n        });\r\n\r\n        client.publish(destination, \'Oh herrow\');\r\n    });\r\n\r\nThe client comes in two forms, a standard or secure client. The example below is\r\nusing the standard client. To use the secure client simply change\r\n`StompClient` to `SecureStompClient`\r\n\r\n\r\n# API\r\n\r\n## Queue Names\r\n\r\nThe meaning of queue names is not defined by the STOMP spec, but by the Broker.\r\nHowever, with ActiveMQ, they should begin with `"/queue/"` or with `"/topic/"`, see\r\n[STOMP1.0](http://stomp.github.io/stomp-specification-1.0.html#frame-SEND) for\r\nmore detail.\r\n\r\n## Stomp = require(\'stomp-client\')\r\n\r\nRequire returns a constructor for STOMP client instances.\r\n\r\nFor backwards compatibility, `require(\'stomp-client\').StompClient` is also\r\nsupported.\r\n\r\n## Stomp(address, [port], [user], [pass], [protocolVersion], [vhost], [reconnectOpts], [tls])\r\n\r\n- `address`: address to connect to, default is `"127.0.0.1"`\r\n- `port`: port to connect to, default is `61613`\r\n- `user`: user to authenticate as, default is `""`\r\n- `pass`: password to authenticate with, default is `""`\r\n- `protocolVersion`: see below, defaults to `"1.0"`\r\n- `vhost`: see below, defaults to `null`\r\n- `reconnectOpts`: see below, defaults to `{}`\r\n- `tls`: Establish a tls/ssl connection.  If an object is passed for this argument it will passed as options to the tls module.\r\n\r\nProtocol version negotiation is not currently supported and version `"1.0"` is\r\nthe only supported version.\r\n\r\nReconnectOpts should contain an integer `retries` specifying the maximum number\r\nof reconnection attempts, and a `delay` which specifies the reconnection delay.\r\n (reconnection timings are calculated using exponential backoff. The first reconnection\r\n happens immediately, the second reconnection happens at `+delay` ms, the third at `+ 2*delay` ms, etc).\r\n\r\n## Stomp(options)\r\n\r\n- `options`: Properties are named the same as the positional parameters above. The property \'host\' is accepted as an alias for \'address\'.\r\n\r\n## stomp.connect([callback, [errorCallback]])\r\n\r\nConnect to the STOMP server. If the callbacks are provided, they will be\r\nattached on the `\'connect\'` and `\'error\'` event, respectively.\r\n\r\n## virtualhosts\r\n\r\nIf using virtualhosts to namespace your queues, you must pass a `version` header of \'1.1\' otherwise it is ignored.\r\n\r\n## stomp.disconnect(callback)\r\n\r\nDisconnect from the STOMP server. The callback will be executed when disconnection is complete.\r\nNo reconnections should be attempted, nor errors thrown as a result of this call.\r\n\r\n## stomp.subscribe(queue, [headers,] callback)\r\n\r\n- `queue`: queue to subscribe to\r\n- `headers`: headers to add to the SUBSCRIBE message\r\n- `callback`: will be called with message body as first argument,\r\n  and header object as the second argument\r\n\r\n## stomp.unsubscribe(queue, [headers])\r\n\r\n- `queue`: queue to unsubscribe from\r\n- `headers`: headers to add to the UNSUBSCRIBE message\r\n\r\n## stomp.publish(queue, message, [headers])\r\n\r\n- `queue`: queue to publish to\r\n- `message`: message to publish, a string or buffer\r\n- `headers`: headers to add to the PUBLISH message\r\n\r\n## stomp.ack(messageId, subscription, [transaction]),\r\n## stomp.nack(messageId, subscription, [transaction])\r\n\r\n- `messageId`: the id of the message to ack/nack\r\n- `subscription`: the id of the subscription\r\n- `transaction`: optional transaction name\r\n\r\n## Property: `stomp.publishable` (boolean)\r\nReturns whether or not the connection is currently writable. During normal operation\r\nthis should be true, however if the client is in the process of reconnecting,\r\nthis will be false.\r\n\r\n## Event: `\'connect\'`\r\n\r\nEmitted on successful connect to the STOMP server.\r\n\r\n## Event: `\'error\'`\r\n\r\nEmitted on an error at either the TCP or STOMP protocol layer. An Error object\r\nwill be passed. All error objects have a `.message` property, STOMP protocol\r\nerrors may also have a `.details` property.\r\n\r\nIf the error was caused by a failure to reconnect after exceeding the number of\r\nreconnection attempts, the error object will have a `reconnectionFailed` property.\r\n\r\n## Event: `\'reconnect\'`\r\n\r\nEmitted when the client has successfully reconnected. The event arguments are\r\nthe new `sessionId` and the reconnection attempt number.\r\n\r\n## Event: `\'reconnecting\'`\r\n\r\nEmitted when the client has been disconnected for whatever reason, but is going\r\nto attempt to reconnect.\r\n\r\n## Event: `\'message\'` (body, headers)\r\n\r\nEmitted for each message received. This can be used as a simple way to receive\r\nmessages for wildcard destination subscriptions that would otherwise not trigger\r\nthe subscription callback.\r\n\r\n## LICENSE\r\n\r\n[MIT](LICENSE)\r\n',
+21 silly publish   readmeFilename: 'README.md',
+21 silly publish   gitHead: '253f4214db3b1e051c446578520c0cde112efeb6',
+21 silly publish   bugs: { url: 'https://github.com/SeniorSolution/node-stomp-client/issues' },
+21 silly publish   homepage: 'https://github.com/SeniorSolution/node-stomp-client#readme',
+21 silly publish   _id: 'senior-solution-stomp-client@0.8.1',
+21 silly publish   _shasum: '27cb492fef584d6a0677555ee318cd5ae6037347',
+21 silly publish   _from: '.' }
+22 verbose getPublishConfig undefined
+23 silly mapToRegistry name senior-solution-stomp-client
+24 silly mapToRegistry using default registry
+25 silly mapToRegistry registry https://registry.npmjs.org/
+26 silly mapToRegistry data Result {
+26 silly mapToRegistry   raw: 'senior-solution-stomp-client',
+26 silly mapToRegistry   scope: null,
+26 silly mapToRegistry   escapedName: 'senior-solution-stomp-client',
+26 silly mapToRegistry   name: 'senior-solution-stomp-client',
+26 silly mapToRegistry   rawSpec: '',
+26 silly mapToRegistry   spec: 'latest',
+26 silly mapToRegistry   type: 'tag' }
+27 silly mapToRegistry uri https://registry.npmjs.org/senior-solution-stomp-client
+28 verbose publish registryBase https://registry.npmjs.org/
+29 silly publish uploading D:\Node\Roaming\npm;npm\npm-cache\senior-solution-stomp-client\0.8.1\package.tgz
+30 verbose request uri https://registry.npmjs.org/senior-solution-stomp-client
+31 verbose request sending authorization for write operation
+32 info attempt registry request try #1 at 20:04:05
+33 verbose request using bearer token for auth
+34 verbose request id d4fc1d1eaa79d12e
+35 http request PUT https://registry.npmjs.org/senior-solution-stomp-client
+36 http 403 https://registry.npmjs.org/senior-solution-stomp-client
+37 verbose headers { 'content-type': 'application/json',
+37 verbose headers   'cache-control': 'max-age=300',
+37 verbose headers   'content-length': '95',
+37 verbose headers   'accept-ranges': 'bytes',
+37 verbose headers   date: 'Fri, 16 Sep 2016 23:03:19 GMT',
+37 verbose headers   via: '1.1 varnish',
+37 verbose headers   connection: 'keep-alive',
+37 verbose headers   'x-served-by': 'cache-iad2628-IAD',
+37 verbose headers   'x-cache': 'MISS',
+37 verbose headers   'x-cache-hits': '0',
+37 verbose headers   'x-timer': 'S1474066998.495877,VS0,VE680',
+37 verbose headers   vary: 'Accept-Encoding' }
+38 verbose request invalidating D:\Node\Roaming\npm;npm\npm-cache\registry.npmjs.org\senior-solution-stomp-client on PUT
+39 error publish Failed PUT 403
+40 verbose stack Error: "You cannot publish over the previously published version 0.8.1." : senior-solution-stomp-client
+40 verbose stack     at makeError (C:\Program Files\nodejs\node_modules\npm\node_modules\npm-registry-client\lib\request.js:264:12)
+40 verbose stack     at CachingRegistryClient.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\npm-registry-client\lib\request.js:252:14)
+40 verbose stack     at Request._callback (C:\Program Files\nodejs\node_modules\npm\node_modules\npm-registry-client\lib\request.js:172:14)
+40 verbose stack     at Request.self.callback (C:\Program Files\nodejs\node_modules\npm\node_modules\request\request.js:200:22)
+40 verbose stack     at emitTwo (events.js:106:13)
+40 verbose stack     at Request.emit (events.js:191:7)
+40 verbose stack     at Request.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\request\request.js:1067:10)
+40 verbose stack     at emitOne (events.js:101:20)
+40 verbose stack     at Request.emit (events.js:188:7)
+40 verbose stack     at IncomingMessage.<anonymous> (C:\Program Files\nodejs\node_modules\npm\node_modules\request\request.js:988:12)
+41 verbose statusCode 403
+42 verbose pkgid senior-solution-stomp-client
+43 verbose cwd D:\Node\node-stomp-client
+44 error Windows_NT 6.1.7601
+45 error argv "C:\\Program Files\\nodejs\\node.exe" "C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js" "publish"
+46 error node v6.4.0
+47 error npm  v3.10.3
+48 error code E403
+49 error "You cannot publish over the previously published version 0.8.1." : senior-solution-stomp-client
+50 error If you need help, you may report this error at:
+50 error     <https://github.com/npm/npm/issues>
+51 verbose exit [ 1, true ]
