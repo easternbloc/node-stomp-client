@@ -4,11 +4,11 @@
     { "name": "Ben Marvell", "email": "ben@marvell-consulting.com" },
     { "name": "Ryan Grenz", "email": "info@ryangrenz.com" }
   ],
-  "name": "stomp-client",
+  "name": "senior-solution-stomp-client",
   "description": "A STOMP protocol implementation in node.js",
-  "version": "0.8.1",
+  "version": "0.8.4",
   "repository": {
-    "url": "http://github.com/easternbloc/node-stomp-client"
+    "url": "https://github.com/SeniorSolution/node-stomp-client"
   },
   "main" : "lib/client.js",
   "engines": {
