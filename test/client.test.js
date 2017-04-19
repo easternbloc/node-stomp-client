@@ -171,6 +171,28 @@ module.exports = testCase({
 
   },
 
+  'send accept-version header on CONNECT when using version > 1.0': function(test) {
+    var self = this;
+    test.expect(2);
+
+    sendHook = function(stompFrame) {
+      test.equal(stompFrame.command, 'CONNECT');
+      test.deepEqual(stompFrame.headers, {
+          login: 'user',
+          passcode: 'pass',
+          'accept-version': '1.0,1.1'
+      });
+
+      test.done();
+    };
+
+    //start the test
+    this.stompClient.version = '1.1';
+    this.stompClient.connect();
+    connectionObserver.emit('connect');
+
+  },
+
   'check inbound CONNECTED frame parses correctly': function(test) {
     var self = this;
     var testId = '1234';
