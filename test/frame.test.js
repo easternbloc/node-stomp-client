@@ -11,6 +11,11 @@ connectionObserver.write = function(data) {
   this.writeBuffer.push(data);
 };
 
+// To support old and new nodejs Buffer api
+var bufferFromString = function(str) {
+  return Buffer.from ? Buffer.from(str) : new Buffer(str);
+}
+
 module.exports = testCase({
 
   setUp: function(callback) {
@@ -61,7 +66,7 @@ module.exports = testCase({
         'header1': 'value1',
         'header2': 'value2'
       },
-      'body': Buffer.from('wewp de doo')
+      'body': bufferFromString('wewp de doo')
     });
 
     // Command before headers, content-length auto-inserted, and terminating with null char (line feed chars for each line too)
@@ -125,7 +130,7 @@ module.exports = testCase({
   'test content-length header is present when suppress-content-length is not': function(test) {
     var frame = new StompFrame({
         'command': 'SEND',
-        'body' : Buffer.from('Content length is 20')
+        'body' : bufferFromString('Content length is 20')
     });
     frame.send(connectionObserver);
 
@@ -169,7 +174,7 @@ module.exports = testCase({
   'test stream write correctly handles single-byte UTF-8 characters as a buffer': function(test) {
       var frame = new StompFrame({
           'command': 'SEND',
-          'body' : Buffer.from('Welcome!')
+          'body' : bufferFromString('Welcome!')
       });
       frame.send(connectionObserver);
 
@@ -204,7 +209,7 @@ module.exports = testCase({
   'test stream write correctly handles multi-byte UTF-8 characters as a buffer': function(test) {
       var frame = new StompFrame({
           'command': 'SEND',
-          'body' : Buffer.from('Ẇḗḽḉớḿẽ☃')
+          'body' : bufferFromString('Ẇḗḽḉớḿẽ☃')
       });
       frame.send(connectionObserver);
 
