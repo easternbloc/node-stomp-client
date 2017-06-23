@@ -183,7 +183,7 @@ module.exports = testCase({
       var contentLengthHeaderLine = writtenString.split("\n")[1];
       var contentLengthValue = contentLengthHeaderLine.split(":")[1].trim();
 
-      test.equal(Buffer.byteLength(frame.body), contentLengthValue, "We should be truthful about how much data we plan to send to the server");
+      test.equal(frame.body.length, contentLengthValue, "We should be truthful about how much data we plan to send to the server");
 
       test.done();
   },
@@ -218,7 +218,7 @@ module.exports = testCase({
       var contentLengthHeaderLine = writtenString.split("\n")[1];
       var contentLengthValue = contentLengthHeaderLine.split(":")[1].trim();
 
-      test.equal(Buffer.byteLength(frame.body), contentLengthValue, "We should be truthful about how much data we plan to send to the server");
+      test.equal(frame.body.length, contentLengthValue, "We should be truthful about how much data we plan to send to the server");
 
       test.done();
   },
