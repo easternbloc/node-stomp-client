@@ -11,6 +11,11 @@ connectionObserver.write = function(data) {
   this.writeBuffer.push(data);
 };
 
+// To support old and new nodejs Buffer api
+var bufferFromString = function(str) {
+  return Buffer.from ? Buffer.from(str) : new Buffer(str);
+}
+
 module.exports = testCase({
 
   setUp: function(callback) {
@@ -61,7 +66,7 @@ module.exports = testCase({
         'header1': 'value1',
         'header2': 'value2'
       },
-      'body': 'wewp de doo'
+      'body': bufferFromString('wewp de doo')
     });
 
     // Command before headers, content-length auto-inserted, and terminating with null char (line feed chars for each line too)
@@ -125,7 +130,7 @@ module.exports = testCase({
   'test content-length header is present when suppress-content-length is not': function(test) {
     var frame = new StompFrame({
         'command': 'SEND',
-        'body' : 'Content length is 20'
+        'body' : bufferFromString('Content length is 20')
     });
     frame.send(connectionObserver);
 
@@ -152,26 +157,59 @@ module.exports = testCase({
     test.equal(containsContentLengthHeader, false, "Content length header should not exist since we are suppressing it");
     test.done();
   },
-  'test stream write correctly handles single-byte UTF-8 characters': function(test) {
+  'test content-length is not present when frame.body is string': function(test) {
+    var frame = new StompFrame({
+        'command': 'SEND',
+        'headers': {},
+        'body' : 'Content length is 20'
+    });
+    frame.send(connectionObserver);
+
+    //Check the headers for the content-length header
+    var writtenString = connectionObserver.writeBuffer.join('');
+    var containsContentLengthHeader = (writtenString.split("\n").indexOf("content-length:20") == -1 ? false : true);
+    test.equal(containsContentLengthHeader, false, "Content length header should not exist since we are suppressing it");
+    test.done();
+  },
+  'test stream write correctly handles single-byte UTF-8 characters as a buffer': function(test) {
+      var frame = new StompFrame({
+          'command': 'SEND',
+          'body' : bufferFromString('Welcome!')
+      });
+      frame.send(connectionObserver);
+
+      var writtenString = connectionObserver.writeBuffer.join('');
+      //Assume content-length header is second line
+      var contentLengthHeaderLine = writtenString.split("\n")[1];
+      var contentLengthValue = contentLengthHeaderLine.split(":")[1].trim();
+
+      test.equal(frame.body.length, contentLengthValue, "We should be truthful about how much data we plan to send to the server");
+
+      test.done();
+  },
+  'test stream write correctly handles single-byte UTF-8 characters as a string': function(test) {
       var frame = new StompFrame({
           'command': 'SEND',
           'body' : 'Welcome!'
       });
       frame.send(connectionObserver);
 
-      var writtenString = connectionObserver.writeBuffer.join('');
-      //Assume content-length header is second line
-      var contentLengthHeaderLine = writtenString.split("\n")[1];
-      var contentLengthValue = contentLengthHeaderLine.split(":")[1].trim();
+      var expectedStream = [
+        'SEND\n\n',
+        'Welcome!',
+        '\0'
+      ];
 
-      test.equal(Buffer.byteLength(frame.body), contentLengthValue, "We should be truthful about how much data we plan to send to the server");
+      var writtenString = connectionObserver.writeBuffer.join('');
+      
+      test.equal(expectedStream.join(''), writtenString, 'Sent content should be eqaul to expected content');
 
       test.done();
   },
-  'test stream write correctly handles multi-byte UTF-8 characters': function(test) {
+  'test stream write correctly handles multi-byte UTF-8 characters as a buffer': function(test) {
       var frame = new StompFrame({
           'command': 'SEND',
-          'body' : 'Ẇḗḽḉớḿẽ☃'
+          'body' : bufferFromString('Ẇḗḽḉớḿẽ☃')
       });
       frame.send(connectionObserver);
 
@@ -180,7 +218,26 @@ module.exports = testCase({
       var contentLengthHeaderLine = writtenString.split("\n")[1];
       var contentLengthValue = contentLengthHeaderLine.split(":")[1].trim();
 
-      test.equal(Buffer.byteLength(frame.body), contentLengthValue, "We should be truthful about how much data we plan to send to the server");
+      test.equal(frame.body.length, contentLengthValue, "We should be truthful about how much data we plan to send to the server");
+
+      test.done();
+  },
+  'test stream write correctly handles multi-byte UTF-8 characters as a string': function(test) {
+      var frame = new StompFrame({
+          'command': 'SEND',
+          'body' : 'Ẇḗḽḉớḿẽ☃'
+      });
+      frame.send(connectionObserver);
+
+      var expectedStream = [
+        'SEND\n\n',
+        'Ẇḗḽḉớḿẽ☃',
+        '\0'
+      ];
+
+      var writtenString = connectionObserver.writeBuffer.join('');
+      
+      test.equal(expectedStream.join(''), writtenString, 'Sent content should be eqaul to expected content');
 
       test.done();
   }
