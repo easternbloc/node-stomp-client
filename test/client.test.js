@@ -42,10 +42,10 @@ module.exports = testCase({
     };
 
     oldSend = StompFrame.prototype.send;
-    StompFrame.prototype.send = function(stream) {
+    StompFrame.prototype.send = function(stream, cb) {
       var self = this;
       process.nextTick(function () {
-        sendHook(self);
+        sendHook(self, cb);
       });
     };
 
@@ -603,10 +603,11 @@ module.exports = testCase({
     self.stompClient.connect(function() {
 
       // Assert next outbound STOMP frame is a DISCONNECT
-      sendHook = function (stompFrame) {
+      sendHook = function (stompFrame, cb) {
         test.equal(stompFrame.command, 'DISCONNECT');
         test.deepEqual(stompFrame.headers, {});
         test.equal(stompFrame.body, '');
+        cb();
       };
 
       // Set disconnection callback to ensure it is called appropriately
