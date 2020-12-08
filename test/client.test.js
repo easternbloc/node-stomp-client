@@ -76,7 +76,7 @@ module.exports = testCase({
   'check StompClient construction from paremeters': function(test) {
     var stompClient = new StompClient(
       'test.host.net',1234,'uname','pw', '1.1', 'q1.host.net', 
-      { retries: 10, delay: 1000 }, 'testclientid');
+      { retries: 10, delay: 1000 }, true, 'testclientid');
 
     test.equal(stompClient.user, 'uname');
     test.equal(stompClient.pass, 'pw');
