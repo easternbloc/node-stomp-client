@@ -68,6 +68,7 @@ module.exports = testCase({
     test.equal(stompClient.address, '127.0.0.1');
     test.equal(stompClient.port, 61613);
     test.equal(stompClient.version, '1.0');
+    test.equal(stompClient.clientId, null);
 
     test.done();
   },
@@ -75,7 +76,7 @@ module.exports = testCase({
   'check StompClient construction from paremeters': function(test) {
     var stompClient = new StompClient(
       'test.host.net',1234,'uname','pw', '1.1', 'q1.host.net', 
-      { retries: 10, delay: 1000 });
+      { retries: 10, delay: 1000 }, clientId: 'testclientid');
 
     test.equal(stompClient.user, 'uname');
     test.equal(stompClient.pass, 'pw');
@@ -85,6 +86,7 @@ module.exports = testCase({
     test.equal(stompClient.vhost, 'q1.host.net');
     test.equal(stompClient.reconnectOpts.retries, 10);
     test.equal(stompClient.reconnectOpts.delay, 1000);
+    test.equal(stompClient.clientId, 'testclientid');
 
     test.done();
   },
@@ -97,7 +99,8 @@ module.exports = testCase({
       pass: 'pw', 
       protocolVersion: '1.1', 
       vhost: 'q1.host.net', 
-      reconnectOpts: { retries: 10, delay: 1000 }});
+      reconnectOpts: { retries: 10, delay: 1000 },
+      clientId:  'testclientid'});
 
     test.equal(stompClient.user, 'uname');
     test.equal(stompClient.pass, 'pw');
@@ -107,6 +110,7 @@ module.exports = testCase({
     test.equal(stompClient.vhost, 'q1.host.net');
     test.equal(stompClient.reconnectOpts.retries, 10);
     test.equal(stompClient.reconnectOpts.delay, 1000);
+    test.equal(stompClient.clientId, 'testclientid');
 
     test.done();
   },
