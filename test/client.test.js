@@ -380,6 +380,47 @@ module.exports = testCase({
     connectionObserver.emit('connect');
   },
 
+  'check a MESSAGE with content-length and a multi-byte UTF-8 body is parsed correctly': function(test) {
+    var self = this;
+    var testId = '1234';
+    var destination = '/queue/someQueue';
+    var messageId = 'ID:SomeID:1';
+    var messageToBeSent = '{"unit":"\u00b0C","name":"h\u00e9llo"}';
+    var expectedLength = Buffer.byteLength(messageToBeSent);
+
+    test.expect(4);
+
+    //mock that we received a CONNECTED from the stomp server in our send hook
+    sendHook = function(stompFrame) {
+      self.stompClient.stream.emit('data', 'CONNECTED\nsession:' + testId + '\n\n\0');
+    };
+
+    this.stompClient.connect(function() {
+
+      // Mock inbound MESSAGE frame, fed one byte at a time so that multi-byte
+      // characters are split across chunks as they can be by TCP.
+      sendHook = function (stompFrame) {
+        var wire = Buffer.from('MESSAGE\ndestination:' + destination + '\nmessage-id:' + messageId + '\ncontent-length:' + expectedLength + '\n\n' + messageToBeSent + '\0', 'utf8');
+        for (var i = 0; i < wire.length; i++) {
+          self.stompClient.stream.emit('data', wire.slice(i, i + 1));
+        }
+      };
+
+      self.stompClient.subscribe(destination, function (body, headers) {
+        test.equal(body, messageToBeSent, 'Received message matches the sent one');
+        test.equal(headers['content-length'], String(expectedLength));
+        test.equal(headers['message-id'], messageId);
+        test.equal(headers.destination, destination);
+
+        self.stompClient.unsubscribe(destination, {});
+        test.done();
+      });
+
+    });
+
+    connectionObserver.emit('connect');
+  },
+
   'check the ERROR callback fires when we receive an error frame on subscription': function (test) {
     var self = this,
       testId = '1234',
